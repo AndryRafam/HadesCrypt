@@ -2,7 +2,9 @@
 [![Debian](https://img.shields.io/badge/Debian-A81D33?logo=debian&logoColor=fff)](#)
 [![Fedora](https://img.shields.io/badge/Fedora-51A2DA?logo=fedora&logoColor=fff)](#)
 
-![](output/scs-1.6.4.png)
+![](output/encrypt.gif)
+
+![](output/decrypt.gif)
 
 <h2 algin="left"> About </h2>
 

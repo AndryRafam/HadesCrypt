@@ -1,16 +1,27 @@
+#include <fstream>
+#include <cstdio>
+#include <stdexcept>
 #include <iostream>
 
-#include "xchacha20.hpp"
+#include <cryptopp/cryptlib.h>
+#include <cryptopp/secblock.h>
+#include <cryptopp/chachapoly.h>
+#include <cryptopp/files.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/argon2.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/filters.h>
+
+#include "../core/aegis.hpp"
 
 using namespace CryptoPP;
 
-bool xchacha20_cipher(std::string mode, std::string filePath, std::string password) {
-	
-	// number of threads
+bool Aegis::xchacha20_cipher(const std::string& mode, const std::string& filePath, const std::string& password) {
+
+    // number of threads
 	const int threads = 4;
 
-	// temporary file to avoid
-	// data loss
+	// temporary file to avoid data loss
 	std::string tempfile = filePath+".tmp";
 	std::string tempfile_hex = filePath+".tmphex"; // temporary file for hexadecimal encoding
 	
@@ -23,7 +34,7 @@ bool xchacha20_cipher(std::string mode, std::string filePath, std::string passwo
 		
 		AutoSeededRandomPool rng;
 		
-		/*ENCRYPTION MODE*/
+		/*encryption mode*/
 		if(mode=="encrypt") {
 			SecByteBlock key(XCHACHA20_KEY_SIZE);
 			rng.GenerateBlock(key, key.size());
@@ -64,8 +75,7 @@ bool xchacha20_cipher(std::string mode, std::string filePath, std::string passwo
 				);
 			}
 		
-			// hexadecimal encoding
-			// for pretty looking
+			// hexadecimal encoding for pretty looking
 			FileSource(tempfile.c_str(), true, new HexEncoder(new FileSink(tempfile_hex.c_str())));
 			
 			// cleanup and swap files
@@ -75,7 +85,7 @@ bool xchacha20_cipher(std::string mode, std::string filePath, std::string passwo
 			
 			return true;
 		}
-		/*DECRYPTION MODE*/
+		/*decryption mode*/
 		else {
 			
 			// hexadecimal decoding
@@ -136,5 +146,5 @@ bool xchacha20_cipher(std::string mode, std::string filePath, std::string passwo
 		std::remove(tempfile_hex.c_str());
 		
 		return false;
-	}
+    }
 }

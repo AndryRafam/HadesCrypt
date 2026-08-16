@@ -1,6 +1,9 @@
-#include "set_echo.hpp"
+#include <termios.h>
+#include <unistd.h>
 
-void setEcho(bool enable) {
+# include "../core/aegis.hpp"
+
+void Aegis::setEcho(bool enable) {
     struct termios tty;
     // get the current terminal attributes
     tcgetattr(STDIN_FILENO, &tty);

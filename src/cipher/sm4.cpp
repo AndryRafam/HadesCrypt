@@ -1,16 +1,28 @@
+#include <fstream>
+#include <cstdio>
+#include <stdexcept>
 #include <iostream>
 
-#include "sm4.hpp"
+#include <cryptopp/cryptlib.h>
+#include <cryptopp/secblock.h>
+#include <cryptopp/sm4.h>
+#include <cryptopp/gcm.h>
+#include <cryptopp/files.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/argon2.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/filters.h>
+
+#include "../core/aegis.hpp"
 
 using namespace CryptoPP;
 
-bool sm4_cipher(std::string mode, std::string filePath, std::string password) {
-
+bool Aegis::sm4_cipher(const std::string& mode, const std::string& filePath, const std::string& password) {
+    
     // number of threads
 	const int threads = 4;
 
-    // temporary file to avoid
-    // data loss
+    // temporary file to avoid data loss
     std::string tempfile = filePath+".tmp";
     std::string tempfile_hex = filePath+".tmphex";
 
@@ -22,7 +34,7 @@ bool sm4_cipher(std::string mode, std::string filePath, std::string password) {
 
         AutoSeededRandomPool rng;
         
-        /*ENCRYPTION MODE*/
+        /*encryption mode*/
         if(mode=="encrypt") {
         
             // Setup key, IV and unique random salt
@@ -65,8 +77,7 @@ bool sm4_cipher(std::string mode, std::string filePath, std::string password) {
                 );
             }
             
-            // hexadecimal encoding
-            // for pretty looking
+            // hexadecimal encoding for pretty looking
             FileSource(tempfile.c_str(), true, new HexEncoder(new FileSink(tempfile_hex.c_str())));
 
             // cleanup and swap files
@@ -76,7 +87,7 @@ bool sm4_cipher(std::string mode, std::string filePath, std::string password) {
 
             return true;
         }
-        /*DECRYPTION MODE*/
+        /*decryption mode*/
         else {
 
             // hexadecimal decoding

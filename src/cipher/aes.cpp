@@ -1,58 +1,70 @@
+#include <fstream>
+#include <cstdio>
+#include <stdexcept>
 #include <iostream>
 
-#include "aes.hpp"
+#include <cryptopp/cryptlib.h>
+#include <cryptopp/secblock.h>
+#include <cryptopp/aes.h>
+#include <cryptopp/gcm.h>
+#include <cryptopp/files.h>
+#include <cryptopp/osrng.h>
+#include <cryptopp/argon2.h>
+#include <cryptopp/hex.h>
+#include <cryptopp/filters.h>
+
+#include "../core/aegis.hpp"
 
 using namespace CryptoPP;
 
-bool aes_cipher(std::string mode, std::string filePath, std::string password) {
+bool Aegis::aes_cipher(const std::string& mode, const std::string& filePath, const std::string& password) {
 
     // number of threads
-	const int threads = 4;
+    const int threads = 4;
 
-    // temporary file to avoid
-    // data loss
+    // temporary file to avoid data loss
     std::string tempfile = filePath+".tmp";
     std::string tempfile_hex = filePath+".tmphex";
 
     const int IV_SIZE = 12; // iv size
     const int TAG_SIZE = 16; // standard 128-bit authentication tag
-    const int SALT_SIZE = 16; // Argon2 recommends at least 16 bytes
+    const int SALT_SIZE = 16; // argon2 recommends at least 16 bytes
 
     try {
 
         AutoSeededRandomPool rng;
-        
-        /*ENCRYPTION MODE*/
+
+        /*encryption mode*/
         if(mode=="encrypt") {
-        
-            // Setup key, IV and unique random salt
-            SecByteBlock key(AES::MAX_KEYLENGTH); // 32 bytes (256 bits)
+
+            // setup key, IV and unique random salt
+            SecByteBlock key(AES::MAX_KEYLENGTH); // 256 bits
             rng.GenerateBlock(key, key.size());
-        
-            SecByteBlock iv(IV_SIZE); // 12 bytes (96 bits) for GCM
+
+            SecByteBlock iv(IV_SIZE); // 96 bits for GCM
             rng.GenerateBlock(iv, iv.size());
 
             SecByteBlock salt(SALT_SIZE);
             rng.GenerateBlock(salt, salt.size());
 
-            // derive key using Argon2id
+            // derive key using argond2id
             Argon2 argon2(Argon2::ARGON2ID);
             argon2.DeriveKey(key, key.size(),
                 (const byte*)password.data(), password.size(),
                 salt.data(), salt.size(),
                 3, // time cost (iterations)
-                65536, // memory cost (64 MB)
+                65536, // memory cost (64 mb)
                 threads // number of threads
             );
-        
+
             {
                 FileSink binarySink(tempfile.c_str());
 
-                // write ciphter ID for AES
+                // write cipher ID for AES
                 byte cipherID = 0x01;
                 binarySink.Put(&cipherID, 1);
 
-                // write Salt + IV + Ciphertext into a temporary binary file
+                // write salt + iv + ciphertext into a temporary binary file
                 binarySink.Put(salt, salt.size());
                 binarySink.Put(iv, iv.size());
 
@@ -65,8 +77,7 @@ bool aes_cipher(std::string mode, std::string filePath, std::string password) {
                 );
             }
 
-            // hexadecimal encoding
-            // for pretty looking
+            // hexadecimal encoding for pretty looking
             FileSource(tempfile.c_str(), true, new HexEncoder(new FileSink(tempfile_hex.c_str())));
 
             // cleanup and swap files
@@ -76,7 +87,7 @@ bool aes_cipher(std::string mode, std::string filePath, std::string password) {
 
             return true;
         }
-        /*DECRYPTION MODE*/
+        /*decryption mode*/
         else {
 
             // hexadecimal decoding
@@ -84,13 +95,13 @@ bool aes_cipher(std::string mode, std::string filePath, std::string password) {
 
             // extract salt and IV out of the decoded temporary file
             std::ifstream in(tempfile_hex.c_str(), std::ios::binary);
-            
+
             // extract and validate cipher ID
             byte cipherID = 0;
             in.read((char*)&cipherID, 1);
             if (in.gcount()!=1) throw std::runtime_error("File truncated: Missing Cipher ID.");
             if (cipherID != 0x01) throw std::runtime_error("Cipher ID mismatch: This file was not encrypted with AES.");
-
+            
             // extract salt and iv
             SecByteBlock salt(SALT_SIZE);
             in.read((char*)salt.data(), salt.size());

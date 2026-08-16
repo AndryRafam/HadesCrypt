@@ -25,10 +25,13 @@ endif()
 
 # 5. Collect Source Files
 file(GLOB CIPHER_SRCS "src/cipher/*.cpp")
+file(GLOB DEC_SRCS "src/aegisdecryption/*.cpp")
+file(GLOB ENC_SRCS "src/aegisencryption/*.cpp")
+file(GLOB HELP_SRCS "src/helper_function/*.cpp")
 file(GLOB PASSWORD_SRCS "src/password/*.cpp")
 file(GLOB DRIVER_SRCS "src/driverProgram/*.cpp")
 
-set(ALL_SRCS ${CIPHER_SRCS} ${PASSWORD_SRCS} ${DRIVER_SRCS})
+set(ALL_SRCS ${CIPHER_SRCS} ${DEC_SRCS} ${ENC_SRCS} ${HELP_SRCS} ${PASSWORD_SRCS} ${DRIVER_SRCS})
 
 # 6. Define the Executable Target
 add_executable(aegis ${ALL_SRCS})

@@ -13,7 +13,10 @@ endif
 
 .DEFAULT_GOAL := install
 
-ccsrc = $(wildcard src/cipher/*.cpp) \
+ccsrc = $(wildcard src/aegisdecryption/*.cpp) \
+		$(wildcard src/aegisencryption/*.cpp) \
+		$(wildcard src/cipher/*.cpp) \
+		$(wildcard src/helper_function/*.cpp) \
 		$(wildcard src/password/*.cpp) \
 		$(wildcard src/driverProgram/*.cpp) 
 		
@@ -26,17 +29,14 @@ deps = $(obj:.o=.d)
 LDFLAGS = -L/usr/local/lib -lcryptopp -lpthread #= -lcryptopp -lpthread
 #LDLIBS = -lcryptopp -lpthread
 
-
 aegis: $(obj)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-
 
 # install
 install: aegis
 	mkdir -p /usr/local/bin
 	cp -f aegis /usr/local/bin/aegis
 
-		
 -include $(deps)
 
 .PHONY: clean

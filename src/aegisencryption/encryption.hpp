@@ -3,9 +3,11 @@
 
 #include "../core/aegis.hpp"
 
-class Encryption : public Aegis {
+class Encryption final : public Aegis {
     public:
+        Encryption() {}
         bool encryptionMode();
+        ~Encryption() override {}
 };
 
 #endif

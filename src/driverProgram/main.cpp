@@ -3,6 +3,7 @@
 #include <string_view>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 
 #include "../core/aegis.hpp"
 #include "../aegisencryption/encryption.hpp"
@@ -16,11 +17,12 @@ constexpr std::string_view BOLD_RED = "\033[1;31m";
 // main function
 
 int main() {
-    Aegis a;
-    Encryption e;
-    Decryption d;
+    std::unique_ptr<Aegis> a = std::make_unique<Aegis>();
+    std::unique_ptr<Encryption> e = std::make_unique<Encryption>();
+    std::unique_ptr<Decryption> d = std::make_unique<Decryption>();
+
     while(true) {
-		a.clearScreen();
+		a->clearScreen();
 
 		const std::vector<std::string> mode = {
 			"Encrypt",
@@ -46,26 +48,23 @@ int main() {
 			}
 
 			std::cout << "\n";
-			if(a.action_selection==a.AppMode::Proceed) std::cout << "   " << HIGHLIGHT << BOLD << "[ Proceed ]" << RESET << "  ";
+			if(a->action_selection==a->AppMode::Proceed) std::cout << "   " << HIGHLIGHT << BOLD << "[ Proceed ]" << RESET << "  ";
 			else std::cout << BOLD << "   [ Proceed ]  " << RESET;
 
-			if(a.action_selection==a.AppMode::Exit) std::cout << "  " << HIGHLIGHT << BOLD << "[ Exit ]" << RESET << "\n";
+			if(a->action_selection==a->AppMode::Exit) std::cout << "  " << HIGHLIGHT << BOLD << "[ Exit ]" << RESET << "\n";
 			else std::cout << BOLD << "  [ Exit ]" << RESET << "\n";
 
 			// Dynamic description Line
 			std::cout << "\n"; // 1. add an extra empty line
 			std::cout << "\033[K"; // 2. clear the line to prevent "ghost text"
-			if(a.action_selection==a.AppMode::Exit) {
-				std::cout << "                Exit the program\n";
-			} else  {
-				std::cout << "\n";
-			}
+			
+			(a->action_selection==a->AppMode::Exit) ? std::cout << "                Exit the program\n" : std::cout << "\n";
 
-			ch = a.getch();
+			ch = a->getch();
 
 			if(ch==27) { // ascii value for escape
-				a.getch(); // discard the intermediate '[' character
-				switch (a.getch()) {
+				a->getch(); // discard the intermediate '[' character
+				switch (a->getch()) {
 					case 'A':
 						mode_selection = (mode_selection==0) ? mode.size()-1 : mode_selection-1;
 						break;
@@ -74,12 +73,12 @@ int main() {
 						break;
 					case 'D': // left arrow (wrap around logic)
 					case 'C': // right arrow (wrap around logic)
-						a.action_selection = (a.action_selection==a.AppMode::Proceed) ? a.AppMode::Exit : a.AppMode::Proceed;
+						a->action_selection = (a->action_selection==a->AppMode::Proceed) ? a->AppMode::Exit : a->AppMode::Proceed;
 						break;
 				}
 			} else if(ch==10) {
-				if(a.action_selection==a.AppMode::Exit) {
-					a.clearScreen();
+				if(a->action_selection==a->AppMode::Exit) {
+					a->clearScreen();
 					std::cout << "Program Terminated.\n\n";
 					std::cout << "\033[?25h"; // restore cursor
 					return 0;
@@ -94,9 +93,9 @@ int main() {
 		std::cout << "\033[?25h"; // restore cursor
 
 		if(mode_selection==0) {
-			if(!e.encryptionMode()) return 0;
+			if(!e->encryptionMode()) return 0;
 		} else if(mode_selection==1) {
-			if(!d.decryptionMode()) return 0;
+			if(!d->decryptionMode()) return 0;
 		}
 	}
 }

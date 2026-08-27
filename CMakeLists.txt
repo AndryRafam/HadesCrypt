@@ -6,9 +6,9 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(FATAL_ERROR "ERROR: This program is strictly for Linux OS. Configuration aborted.")
 endif()
 
-# 2. Enforce C++23 Standard
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# 2. C++17 Standard or Higher
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 3. Global Compiler Flags

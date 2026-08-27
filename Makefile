@@ -21,7 +21,17 @@ ccsrc = $(wildcard src/aegisdecryption/*.cpp) \
 		$(wildcard src/driverProgram/*.cpp) 
 		
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++23 -MMD -MP
+# 1. Fallback to basic C++17 (if c++20 or 23 not available)
+STD_FLAG := -std=c++17
+
+# 2. Check if the compiler supports C++23 or C++20 instead
+ifeq ($(shell $(CXX) -std=c++23 -E - < /dev/null > /dev/null 2>&1 && echo m),m)
+    STD_FLAG := -std=c++23
+else ifeq ($(shell $(CXX) -std=c++20 -E - < /dev/null > /dev/null 2>&1 && echo m),m)
+    STD_FLAG := -std=c++20
+endif
+
+CXXFLAGS = -Wall -Wextra $(STD_FLAG) -MMD -MP
 
 obj = $(ccsrc:.cpp=.o)
 deps = $(obj:.o=.d)
